@@ -1,0 +1,15 @@
+import { NextResponse } from 'next/server';
+import { connectDB } from '@/lib/mongodb';
+import Order from '@/models/Order';
+import { getCurrentUser } from '@/lib/auth';
+
+export const dynamic = 'force-dynamic';
+
+export async function GET() {
+  const user = getCurrentUser();
+  if (!user) return NextResponse.json({ error: 'Sign in to view your orders.' }, { status: 401 });
+
+  await connectDB();
+  const orders = await Order.find({ user: user.id }).sort({ createdAt: -1 }).lean();
+  return NextResponse.json({ orders });
+}
